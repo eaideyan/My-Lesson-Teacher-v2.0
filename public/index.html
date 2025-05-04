@@ -16,211 +16,312 @@
             rel="stylesheet">
     </noscript>
     <style>
-      :root {
-        --primary: #4361ee;
-        --surface: #ffffff;
-        --background: #f8fafc;
-        --text: #1e293b;
-        --border: #e2e8f0;
-        --radius: 12px;
-      }
-
+      /* ---------- BASE ---------- */
       * { box-sizing: border-box; margin: 0; padding: 0 }
-      
-      body { 
-        min-height: 100vh;
-        font-family: system-ui, -apple-system, sans-serif;
-        background: var(--background);
-        color: var(--text);
-        display: flex;
-        flex-direction: column;
+      html, body { height: 100%; font-family: 'Nunito', sans-serif; background: #f5f7fa }
+      body { display: flex; flex-direction: column }
+
+      /* ---------- HEADER ---------- */
+      header {
+        position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+        padding: 0.7rem env(safe-area-inset-right) 0.7rem env(safe-area-inset-left);
+        background: #2563eb; color: #fff; text-align: center; line-height: 1.2;
+        font-size: 1.2rem; font-weight: 700;
+        box-shadow: 0 2px 5px rgba(0,0,0,.1);
+      }
+      header small { 
+        display: block; 
+        font-size: .7rem; 
+        font-weight: 400;
+        margin-top: 0.1rem;
       }
 
-      /* Header */
-      header {
-        background: var(--primary);
-        color: white;
-        padding: 0.5rem;
+      /* ---------- VOICE TOGGLE ---------- */
+      #speakToggleWrapper {
+        display: none !important; /* Hide the speak toggle completely */
+      }
+
+      /* ---------- MAIN WRAPPER ---------- */
+      main#wrapper {
+        flex: 1; display: flex; gap: .5rem;
+        max-width: 1200px; width: 100%; margin: auto;
+        min-height: 0;
+        padding: 5rem .5rem calc(6.2rem + env(safe-area-inset-bottom));
+      }
+
+      /* ---------- SIDEBARS ---------- */
+      #leftSidebar {
+        position: sticky;
+        top: 5rem;
+        width: 20%; min-width: 180px;
+        background: #fff; border-radius: 16px; padding: .5rem;
+        box-shadow: 0 2px 6px rgba(0,0,0,.08);
+        font-size: .95rem;
+        display: flex; flex-direction: column;
+        min-height: 0; overflow-y: auto; gap: .5rem;
+        max-height: calc(100vh - 6rem);
+      }
+
+      /* Progress Bar Styling */
+      #progressVisual {
+        padding: 10px;
+        background: #f8fafc;
+        border-radius: 8px;
+        margin: 8px 0;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        transition: all 0.3s ease;
+      }
+
+      #progressFeedback {
+        padding: 5px 10px;
+        color: #4b5563;
+        font-size: 0.85rem;
         text-align: center;
+        margin-top: 5px;
+      }
+
+      /* Progress Animation */
+      #progressVisual {
+        transition: transform 0.3s ease;
+      }
+      .pulse {
+        animation: pulse 0.5s ease-out;
+      }
+      @keyframes pulse {
+        0%,100% { transform: none; }
+        50% { transform: scale(1.08); }
+      }
+
+      /* ---------- CHAT ---------- */
+      #chatBoxWrapper {
+        flex: 2.5; background: #fff; border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.05); padding: .5rem;
+        display: flex; flex-direction: column; min-height: 0;
+      }
+      #chat {
+        flex: 1; overflow-y: auto;
+        display: flex; flex-direction: column; gap: .6rem;
+        padding-right: .5rem; scroll-behavior: smooth;
+      }
+
+      /* ---------- BUBBLES ---------- */
+      .message-row { display: flex; align-items: flex-start }
+      .message-row.user { justify-content: flex-end }
+      .avatar {
+        width: 36px; height: 36px; border-radius: 50%;
+        margin: 0 6px; flex-shrink: 0;
+      }
+      .user .avatar { background: #bae6fd }
+      .assistant .avatar {
+        background: url('https://cdn-icons-png.flaticon.com/512/1995/1995471.png')
+          center/cover;
+      }
+      .bubble {
+        max-width: 75%; padding: .6rem .9rem; border-radius: 16px;
+        font-size: 1rem; line-height: 1.45; white-space: pre-wrap;
+      }
+      .bubble.user {
+        background: #c7f0d8; border-bottom-right-radius: 0;
+        position: relative;
+      }
+      .bubble.user::after {
+        content: attr(data-name);
+        font-size: .75rem; color: #1e3a8a;
+        position: absolute; bottom: -1.2rem; right: 1rem;
+      }
+      .bubble.assistant { background: #e0e7ff; border-bottom-left-radius: 0 }
+
+      /* ---------- VISUALS SIDEBAR ---------- */
+      #visuals {
+        width: 20%; min-width: 180px;
+        background: #fff; border-radius: 16px; padding: 1rem;
+        box-shadow: 0 2px 6px rgba(0,0,0,.08);
+        font-size: .95rem;
+        display: flex; flex-direction: column;
+        min-height: 0; overflow-y: auto; gap: 1rem;
+      }
+
+      /* Visual Aid Styling */
+      .visual-aid-box {
+        background: #f8fafc;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        font-family: monospace;
+        white-space: pre-wrap;
+        line-height: 1.5;
         font-size: 1.2rem;
+        text-align: center;
+        border: 1px dashed #e2e8f0;
+        transition: all 0.3s ease;
+      }
+
+      .visual-aid-box:hover {
+        transform: scale(1.02);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+
+      .visual-aid-instruction {
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        background: #fff;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        color: #4b5563;
+        font-family: 'Nunito', sans-serif;
+      }
+
+      /* Special characters */
+      .visual-aid-box .arrow {
+        color: #2563eb;
         font-weight: bold;
       }
 
-      header small {
-        display: block;
+      .visual-aid-box .emoji {
+        font-size: 1.4rem;
+      }
+
+      .visual-aid-box .label {
+        color: #6b7280;
         font-size: 0.8rem;
-        opacity: 0.9;
       }
 
-      /* Layout */
-      main {
-        flex: 1;
-        display: flex;
-        gap: 0.5rem;
-        max-width: 1200px;
-        margin: 0.5rem auto;
-        padding: 0 0.5rem;
+      /* Remove old image styles */
+      #visuals img,
+      #visuals img:hover,
+      #visuals iframe {
+        display: none;
       }
 
-      /* Sidebar */
-      #leftSidebar {
-        width: 240px;
-        background: var(--surface);
-        border-radius: var(--radius);
-        padding: 0.75rem;
-        border: 1px solid var(--border);
-      }
-
-      #knowledgeContent {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-      }
-
-      #treeContents {
-        background: var(--surface);
-        border-radius: 8px;
-      }
-
-      #treeContents ol {
-        list-style: none;
-        padding: 0;
-      }
-
-      #treeContents li {
-        padding: 0.5rem;
-        border-bottom: 1px solid var(--border);
-      }
-
-      #treeContents li:last-child {
-        border-bottom: none;
-      }
-
-      /* Progress */
-      #progressSection {
-        margin-top: 0.5rem;
-        padding: 0.75rem;
-        background: var(--background);
-        border-radius: 8px;
-        border: 1px solid var(--border);
-        text-align: center;
-      }
-
-      #progressCircles {
-        margin: 0.5rem 0;
-      }
-
-      /* Chat */
-      #chatBoxWrapper {
-        flex: 1;
-        background: var(--surface);
-        border-radius: var(--radius);
-        border: 1px solid var(--border);
-        padding: 0.75rem;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-      }
-
-      #chat {
-        flex: 1;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-      }
-
-      .message-row {
-        display: flex;
-        align-items: flex-start;
-        gap: 0.5rem;
-      }
-
-      .message-row.user {
-        justify-content: flex-end;
-      }
-
-      .avatar {
-        width: 32px;
-        height: 32px;
-        border-radius: var(--radius);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-        background: var(--background);
-        border: 1px solid var(--border);
-      }
-
-      .bubble {
-        max-width: 85%;
-        padding: 0.75rem;
-        border-radius: var(--radius);
-        font-size: 0.95rem;
-        line-height: 1.4;
-      }
-
-      .bubble.user {
-        background: var(--primary);
-        color: white;
-      }
-
-      .bubble.assistant {
-        background: var(--background);
-        border: 1px solid var(--border);
-      }
-
-      /* Input */
+      /* ---------- INPUT BAR ---------- */
       form {
-        position: fixed;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        max-width: 1200px;
-        margin: 0 auto;
-        background: var(--surface);
-        border-top: 1px solid var(--border);
-        padding: 0.5rem;
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
+        position: fixed; left: 0; right: 0;
+        bottom: 0; max-width: 1200px; margin: auto;
+        background: #fff; border-top: 1px solid #ddd;
+        padding: .6rem 1rem .6rem 1rem;
+        display: flex; gap: .6rem; align-items: center;
+        border-radius: 12px 12px 0 0; z-index: 1000;
       }
-
       textarea {
-        flex: 1;
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 0.5rem;
-        font-size: 0.95rem;
-        min-height: 40px;
-        resize: none;
-        background: var(--background);
+        flex: 1; border: 1px solid #ccc; border-radius: 12px;
+        padding: .6rem 1rem; font-size: 1rem;
+        min-height: 3rem; max-height: 8rem;
+        overflow: auto; resize: none;
       }
-
+      textarea.auto { height: auto }
+      #controls {
+        display: flex; flex-direction: column; align-items: center; gap: .3rem;
+      }
+      .top-buttons { display: flex; gap: .4rem }
       button {
-        background: var(--primary);
-        color: white;
-        border: none;
-        border-radius: var(--radius);
-        padding: 0.5rem 1rem;
-        font-size: 0.95rem;
-        cursor: pointer;
+        background: #2563eb; color: #fff; border: none;
+        border-radius: 10px; padding: .6rem 1rem;
+        font-size: 1rem; cursor: pointer;
       }
-
       .clear-button {
-        background: #ff6b6b;
+        background: orange; width: 100%;
+        font-size: .85rem; padding: .3rem .8rem;
       }
 
+      /* ---------- MOBILE ---------- */
       @media (max-width: 768px) {
-        #leftSidebar { display: none; }
-        main { margin: 0; }
-        #chatBoxWrapper { border-radius: 0; }
+        #leftSidebar,
+        #visuals,
+        #speakToggleWrapper {
+          display: none !important; /* Force hide on mobile */
+        }
+
+        main#wrapper {
+          flex-direction: column;
+          padding-top: 3.5rem; /* Reduce top padding to match smaller header */
+          width: 100%;
+        }
+
+        #chatBoxWrapper {
+          width: 100%;
+          margin: 0;
+          border-radius: 0;
+        }
+
+        .progress-bar {
+          display: block !important;
+          text-align: center;
+          padding: 0.3rem;
+          font-size: 0.9rem;
+          margin-top: 0.3rem;
+        }
+
+        form {
+          padding: 0.5rem;
+        }
+
+        textarea {
+          font-size: 16px !important; /* Prevent zoom on iOS */
+        }
+
+        .bubble {
+          max-width: 85%;
+        }
+
+        header {
+          padding: 0.5rem;
+          font-size: 1.2rem;
+        }
+        header small {
+          font-size: 0.65rem;
+          margin-top: 0;
+        }
+      }
+
+      /* ---------- TABLET RESPONSIVE UPDATES ---------- */
+      @media (min-width: 769px) and (max-width: 1024px) {
+        #leftSidebar,
+        #visuals {
+          width: 25%;
+          min-width: 200px;
+        }
+      }
+
+      /* ---------- PERFORMANCE OPTIMIZATIONS ---------- */
+      * {
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+      }
+
+      .bubble, 
+      .input-container,
+      button {
+        will-change: transform;
+      }
+
+      /* ---------- LOW BANDWIDTH OPTIMIZATIONS ---------- */
+      img {
+        loading: lazy;
+      }
+
+      @media (prefers-reduced-data: reduce) {
+        img {
+          max-width: 800px;
+          quality: medium;
+        }
+      }
+
+      /* ---------- CONFETTI ---------- */
+      @keyframes floatUp {
+        0% { opacity: 1; transform: translate(-50%, 0) }
+        100% { opacity: 0; transform: translate(-50%, -140px) }
+      }
+      #cssConfetti {
+        position: fixed; left: 50%; bottom: 60px; z-index: 9999;
+        font-size: 2.6rem; pointer-events: none;
+        animation: floatUp 1.3s ease-out forwards;
       }
     </style>
 </head>
 <body>
     <header>
-        Uncle E.
+        Uncle E. 
         <small>Powered by ValueFirst</small>
     </header>
     <div id="speakToggleWrapper">
@@ -229,15 +330,20 @@
 
     <main id="wrapper">
         <aside id="leftSidebar">
-            <div id="knowledgeContent">
-                <h3>📘 Knowledge Tree</h3>
-                <div id="treeContents"></div>
-                <div id="progressSection">
-                    <div>🧠 Progress: <span id="progressPercent">0%</span></div>
-                    <div id="progressCircles"></div>
-                    <div><span id="progressCount">0/0</span> concepts mastered</div>
-                    <div id="progressFeedback"></div>
+            <h3 id="knowledgeHeader" style="display:none">📘 Knowledge Tree</h3>
+            <div id="knowledgeContent" style="overflow:auto">
+                <div id="aboutMrE">
+                    <p><strong>I am Uncle E.</strong></p>
+                    <p>
+                        Your friendly AI tutor! 🌟<br>
+                        I'll help you learn step by step.<br>
+                        Feel free to ask questions and relax!
+                    </p>
+                    <p><strong>Great!</strong></p>
                 </div>
+                <div id="treeContents" style="margin-top:.8rem"></div>
+                <div id="progressVisual" style="margin-top:1rem;font-weight:bold"></div>
+                <div id="progressFeedback" style="font-size:.85rem;color:#4b5563;margin-top:.3rem"></div>
             </div>
         </aside>
 
@@ -252,13 +358,13 @@
     </main>
 
     <form id="chat-form">
-        <textarea id="messageInput" placeholder="Type your message..." required></textarea>
+        <textarea id="messageInput" placeholder="Type your message…" required></textarea>
         <div id="controls">
             <div class="top-buttons">
                 <button type="submit">Send</button>
                 <button type="button" id="micButton">🎤</button>
             </div>
-            <button type="button" class="clear-button">🗑️ Clear</button>
+            <button type="button" class="clear-button" id="clearButton">🗑️ Clear</button>
         </div>
     </form>
 
@@ -276,22 +382,23 @@
       let student = '';
       let thinking = null;
       let totalNodes = 0;
+      let currentTopic = '';
       let currentNode = 0;
       let consecutiveCorrect = 0;
+      let questionCount = 0;
 
       /* ---------- HELPERS ---------- */
       function addMsg(text, role) {
         const row = document.createElement('div');
         row.className = `message-row ${role}`;
-        
-        const av = document.createElement('div');
+        const av  = document.createElement('div');
         av.className = `avatar ${role}`;
-        av.innerHTML = role === 'assistant' ? '👨‍🏫' : '👤';
-        
         const bub = document.createElement('div');
         bub.className = `bubble ${role}`;
-        bub.innerHTML = text;
-        
+        bub.innerHTML = text
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em>$1</em>');
+        if (role === 'user') bub.setAttribute('data-name', student);
         row.append(role === 'assistant' ? av : bub, role === 'assistant' ? bub : av);
         chatBox.appendChild(row);
         chatBox.scrollTop = chatBox.scrollHeight;
@@ -341,12 +448,15 @@
 
       /* ---------- PROGRESS TRACKING ---------- */
       function updateProgress(done = 0, total = 0) {
-        const percentage = total > 0 ? Math.round((done / total) * 100) : 0;
-        document.getElementById('progressPercent').textContent = percentage + '%';
-        document.getElementById('progressCount').textContent = `${done}/${total}`;
+        const filled = '🟢'.repeat(done);
+        const empty = '⬜'.repeat(Math.max(total - done, 0));
         
-        const circles = Array(total).fill('⚪').map((circle, i) => i < done ? '🟢' : '⚪');
-        document.getElementById('progressCircles').innerHTML = circles.join('');
+        const pv = document.getElementById('progressVisual');
+        const percentage = total > 0 ? Math.round((done / total) * 100) : 0;
+        
+        pv.innerHTML = `
+          <div style="margin-bottom:5px">🧠 Progress: ${filled}${empty} (${done}/${total} mastered!)</div>
+        `;
         
         const feedback = document.getElementById('progressFeedback');
         if (total === 0) {
@@ -359,16 +469,62 @@
         }
       }
 
+      /* ---------- NODE MASTERY ---------- */
+      function checkAnswer(isCorrect) {
+        if (isCorrect) {
+          consecutiveCorrect++;
+          questionCount++;
+          
+          if (consecutiveCorrect === 3) {
+            // Node is mastered after 3 consecutive correct answers
+            markNode(currentNode);
+            consecutiveCorrect = 0;
+            questionCount = 0;
+            currentNode++;
+            return true; // Node completed
+          }
+        } else {
+          // Reset consecutive correct count on wrong answer
+          consecutiveCorrect = 0;
+          questionCount = 0;
+        }
+        return false; // Node not completed yet
+      }
+
+      /* ---------- TREE MARKING ---------- */
+      function markNode(index) {
+        const items = document.querySelectorAll('#treeContents li');
+        if (items[index]) {
+          // Replace either 🌱 or 🔁 with ✅
+          items[index].innerHTML = items[index].innerHTML.replace(/[🌱🔁]\s*/, '✅ ');
+          
+          // Count completed nodes and update progress
+          const completed = items.length;
+          const marked = document.querySelectorAll('#treeContents li').length;
+          updateProgress(marked, completed);
+          
+          saveTreeState();
+        }
+      }
+
       /* ---------- KNOWLEDGE TREE CREATION ---------- */
-      function createKnowledgeTree(nodes) {
+      function createKnowledgeTree(topic, subject, grade, nodes) {
+        const treeHeader = document.getElementById('knowledgeHeader');
         const treeContent = document.getElementById('treeContents');
+        
+        treeHeader.style.display = 'block';
+        treeHeader.textContent = `Knowledge Tree for ${topic} (${subject}, Primary ${grade}):`;
+        
         const nodesList = nodes.map((node, i) => 
           `<li>${i === 0 ? '🌱' : '🔁'} ${node}</li>`
         ).join('');
         
-        treeContent.innerHTML = `<ol>${nodesList}</ol>`;
+        treeContent.innerHTML = `<ol style="padding-left:1rem">${nodesList}</ol>`;
+        document.getElementById('aboutMrE').style.display = 'none';
+        
         totalNodes = nodes.length;
         updateProgress(0, totalNodes);
+        saveTreeState();
       }
 
       /* ---------- STATE PERSISTENCE ---------- */
@@ -425,6 +581,7 @@
         student = '';
         thinking = null;
         totalNodes = 0;
+        currentTopic = '';
         currentNode = 0;
         consecutiveCorrect = 0;
         questionCount = 0;
@@ -432,7 +589,7 @@
       }
 
       /* ---------- INITIALIZATION ---------- */
-      async function initializeApp() {
+      function initializeApp() {
         const welcomeMessage = "Welcome 👋 What's your name, grade, and what topic would you like to learn today?";
         
         // Clear any stale state
@@ -459,81 +616,132 @@
       }
 
       // Initialize the app
-      window.addEventListener('load', initializeApp);
+      window.addEventListener('load', () => {
+        initializeApp();
+        // Remove speak toggle from DOM
+        document.getElementById('speakToggleWrapper')?.remove();
+      });
 
       async function send(msg) {
         try {
-          // Add message to UI immediately
+          // ─── 1a) Capture student's name ───────────────────────────────
+          if (!student && /my name is (\w+)/i.test(msg)) {
+            student = msg.match(/my name is (\w+)/i)[1];
+          }
+
+          // ─── 1b) Capture student's grade (Primary X) ──────────────────
+          if (!window.studentGrade) {
+            const gm = msg.match(/primary\s*([1-9])/i);
+            window.studentGrade = gm ? parseInt(gm[1], 10) : null;
+          }
+
           history.push({ role: 'user', content: msg });
           addMsg(msg, 'user');
 
-          // Show thinking indicator
           thinking = addMsg('💭 Uncle E. is thinking...', 'assistant');
 
-          // Extract student info from message
-          if (!student && msg.toLowerCase().includes('my name is')) {
-            student = msg.match(/my name is\s+(\w+)/i)[1];
-          }
-
-          if (!window.studentGrade && msg.toLowerCase().includes('primary')) {
-            const gradeMatch = msg.match(/primary\s*([1-9])/i);
-            if (gradeMatch) {
-              window.studentGrade = parseInt(gradeMatch[1], 10);
-            }
-          }
-
-          // Make API call
           const res = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              conversation: history,
-              student: student || '',
-              grade: window.studentGrade || null
-            })
+            body: JSON.stringify({ conversation: history })
           });
-
-          // Remove thinking indicator
-          if (thinking) {
-            thinking.remove();
-            thinking = null;
-          }
-
-          // Handle response
-          if (!res.ok) {
-            throw new Error(`Server error: ${res.status}`);
-          }
-
-          const data = await res.json();
           
-          // Update UI with response
-          const cleanMessage = data.message.replace(/⚠️/g, '').replace(/Do you understand\?.*?/gi, 'Do you understand?');
+          let data;
+          try {
+            data = await res.json();
+          } catch (e) {
+            throw new Error('Failed to parse response from server');
+          }
+
+          if (!res.ok) {
+            throw new Error(data.message || `Server error: ${res.status}`);
+          }
+
+          if (thinking) { thinking.remove(); thinking = null; }
+
+          // Handle the enhanced response format
+          const { message, progress, visuals, knowledgeTree } = data;
+
+          // Update message history with cleaned message
+          let cleanMessage = message.replace(/⚠️/g, '');
+          cleanMessage = cleanMessage.replace(/Do you understand\?.*?/gi, 'Do you understand?');
           history.push({ role: 'assistant', content: cleanMessage });
-          addMsg(cleanMessage, 'assistant');
 
           // Update knowledge tree if present
-          if (data.knowledgeTree) {
-            const treeLines = data.knowledgeTree.split('\n')
-              .filter(l => /^\d+\./.test(l))
-              .map(l => l.replace(/^\d+\.\s*/, ''));
-            
+          if (knowledgeTree) {
+            document.getElementById('knowledgeHeader').style.display = 'block';
+            document.getElementById('aboutMrE').style.display = 'none';
+            const treeLines = knowledgeTree.split('\n').filter(l => /^\d+\./.test(l));
             if (treeLines.length) {
-              createKnowledgeTree(treeLines);
+              const treeHtml = treeLines.map(l => `<li>${l.replace(/^\d+\.\s*/, '')}</li>`).join('');
+              document.getElementById('treeContents').innerHTML = `<ol style="padding-left:1rem">${treeHtml}</ol>`;
             }
           }
 
           // Update progress if present
-          if (data.progress) {
-            updateProgress(data.progress.done, data.progress.total);
+          if (progress) {
+            updateProgress(progress.done, progress.total);
           }
 
+          // Display the message
+          addMsg(cleanMessage, 'assistant');
+          speak(cleanMessage);
+
+          // Handle visuals in the sidebar
+          if (visuals && visuals.length > 0) {
+            const visualsDiv = document.getElementById('visuals');
+            visualsDiv.innerHTML = '<h3>🔍 Topic visuals</h3>';
+            
+            const visualContainer = document.createElement('div');
+            visualContainer.style.cssText = `
+              display: flex;
+              flex-direction: column;
+              gap: 1rem;
+              padding: 0.5rem;
+            `;
+            
+            for (const visual of visuals) {
+              const visualBox = document.createElement('div');
+              visualBox.className = 'visual-aid-box';
+              
+              // Format the visual content
+              let formattedContent = visual.content
+                .replace(/→|↓|↑/g, match => `<span class="arrow">${match}</span>`)
+                .replace(/(\p{Emoji}+)/gu, match => `<span class="emoji">${match}</span>`)
+                .replace(/\((.*?)\)/g, (_, label) => `<span class="label">(${label})</span>`);
+              
+              visualBox.innerHTML = formattedContent;
+              
+              // Add instructions if present
+              if (visual.instructions) {
+                const instructions = document.createElement('div');
+                instructions.className = 'visual-aid-instruction';
+                instructions.textContent = visual.instructions;
+                visualBox.appendChild(instructions);
+              }
+              
+              visualContainer.appendChild(visualBox);
+            }
+            
+            visualsDiv.appendChild(visualContainer);
+          } else {
+            // No visuals to display
+            const visualsDiv = document.getElementById('visuals');
+            visualsDiv.innerHTML = `
+              <h3>🔍 Topic visuals</h3>
+              <div class="visual-aid-box">
+                Let's practice drawing this!<br>
+                I can guide you step by step.
+              </div>
+            `;
+          }
         } catch (error) {
           console.error('Error in send function:', error);
           if (thinking) {
             thinking.remove();
             thinking = null;
           }
-          addMsg('Sorry, I encountered an error. Please try again in a moment.', 'assistant');
+          addMsg('Sorry, I encountered an error. Please try again.', 'assistant');
         }
       }
 
@@ -547,8 +755,31 @@
         }
       });
 
-      // Initialize the app
-      window.addEventListener('load', initializeApp);
+      // Add enter key submission
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          form.dispatchEvent(new Event('submit'));
+        }
+      });
+
+      micBtn.addEventListener('click', () => {
+        // Implement microphone input handling
+      });
+
+      clearBtn.addEventListener('click', () => {
+        chatBox.innerHTML = '';
+        history = [];
+        student = '';
+        thinking = null;
+        totalNodes = 0;
+        currentTopic = '';
+        consecutiveCorrect = 0;
+        questionCount = 0;
+        currentNode = 0;
+        updateProgress();
+        saveTreeState();
+      });
     </script>
 </body>
 </html> 
