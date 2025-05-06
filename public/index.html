@@ -385,6 +385,48 @@
       .welcome-overlay.hidden {
         display: none;
       }
+
+      /* Mic Button Styles */
+      #micButton {
+        position: relative;
+        transition: all 0.3s ease;
+      }
+
+      #micButton.recording {
+        background: #dc2626;
+        animation: pulse-recording 2s infinite;
+      }
+
+      @keyframes pulse-recording {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+      }
+
+      /* Recording Status */
+      #recordingStatus {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        display: none;
+        white-space: nowrap;
+      }
+
+      #recordingStatus.visible {
+        display: block;
+        animation: fadeInUp 0.3s ease;
+      }
+
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translate(-50%, 10px); }
+        to { opacity: 1; transform: translate(-50%, 0); }
+      }
     </style>
 </head>
 <body>
@@ -443,7 +485,8 @@
         <div id="controls">
             <div class="top-buttons">
                 <button type="submit">Send</button>
-                <button type="button" id="micButton">🎤</button>
+                <button type="button" id="micButton" title="Click to start/stop recording">🎤</button>
+                <div id="recordingStatus">Recording... (speak now)</div>
             </div>
             <button type="button" class="clear-button" id="clearButton">🗑️ Clear</button>
         </div>
@@ -467,6 +510,10 @@
       let currentNode = 0;
       let consecutiveCorrect = 0;
       let questionCount = 0;
+
+      /* ---------- SPEECH RECOGNITION ---------- */
+      let recognition = null;
+      let isRecording = false;
 
       /* ---------- HELPERS ---------- */
       function addMsg(text, role) {
@@ -713,10 +760,79 @@
         }
       }
 
+      function initializeSpeechRecognition() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+          console.error('Speech recognition not supported');
+          micBtn.style.display = 'none';
+          return;
+        }
+
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-NG'; // Nigerian English
+
+        recognition.onstart = () => {
+          isRecording = true;
+          micBtn.classList.add('recording');
+          document.getElementById('recordingStatus').classList.add('visible');
+          input.placeholder = 'Listening...';
+        };
+
+        recognition.onresult = (event) => {
+          let finalTranscript = '';
+          let interimTranscript = '';
+          
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              finalTranscript += event.results[i][0].transcript;
+            } else {
+              interimTranscript += event.results[i][0].transcript;
+            }
+          }
+
+          // Update textarea with transcripts
+          input.value = finalTranscript + interimTranscript;
+        };
+
+        recognition.onend = () => {
+          stopRecording();
+        };
+
+        recognition.onerror = (event) => {
+          console.error('Speech recognition error:', event.error);
+          stopRecording();
+        };
+      }
+
+      function stopRecording() {
+        if (recognition) {
+          recognition.stop();
+        }
+        isRecording = false;
+        micBtn.classList.remove('recording');
+        document.getElementById('recordingStatus').classList.remove('visible');
+        input.placeholder = 'Type your message…';
+      }
+
+      function toggleRecording() {
+        if (!recognition) {
+          initializeSpeechRecognition();
+        }
+
+        if (isRecording) {
+          stopRecording();
+        } else {
+          input.value = '';
+          recognition.start();
+        }
+      }
+
       // Initialize the app
       window.addEventListener('load', () => {
         initializeApp();
-        // Remove speak toggle from DOM
+        initializeSpeechRecognition();
         document.getElementById('speakToggleWrapper')?.remove();
       });
 
@@ -862,7 +978,7 @@
       });
 
       micBtn.addEventListener('click', () => {
-        // Implement microphone input handling
+        toggleRecording();
       });
 
       clearBtn.addEventListener('click', () => {
